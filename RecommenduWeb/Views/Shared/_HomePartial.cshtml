@@ -1,0 +1,32 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Usuario> SignInManager
+@inject UserManager<Usuario> UserManager
+
+@if (!SignInManager.IsSignedIn(User))
+{
+    <header>
+        <nav class="navbar navbar-expand-md navbar-light bg-transparent">
+            <div class="container-fluid px-5 px-lg-0 ps-lg-5">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <img src="/Resources/SiteImages/Logo.png" class="img-logo" alt="Imagem responsiva" />
+                </a>
+                <div class="navbar-collapse collapse justify-content-end">
+                    <ul class="navbar-nav align-items-lg-center">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark me-3 box-shadow" asp-area="Identity" asp-page="/Account/Login">Entrar</a>
+                        </li>
+                        <li class="nav-item d-block d-lg-none">
+                            <a class="nav-link text-dark me-3 box-shadow" asp-area="Identity" asp-page="/Account/Register">Registrar-se</a>
+                        </li>
+                        <li class="nav-item d-lg-block d-none">
+                            <a class="nav-link text-white btn btn-laranja py-3 px-5 me-5" asp-area="Identity" asp-page="/Account/Register">Registrar-se</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+}

@@ -1,0 +1,24 @@
+﻿@page
+@model PersonalDataModel
+@{
+    ViewData["Title"] = "Conta";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<h3 class="my-3">@ViewData["Title"]</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <p>Sua conta possui os dados que você nos forneceu. Caso delete sua conta, todas suas informações serão permanentemente removidas do nosso banco de dados.</p>
+        <p>
+            <strong>Deletar sua conta é uma ação irreversível.</strong>
+        </p>
+        <p>
+            <a id="delete" asp-page="DeletePersonalData" class="btn btn-preto text-danger py-3 px-5">Deletar conta</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

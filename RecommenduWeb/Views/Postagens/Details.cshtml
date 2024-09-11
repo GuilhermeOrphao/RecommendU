@@ -1,0 +1,270 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@inject SignInManager<Usuario> SignInManager
+@inject RecommenduWeb.Services.PostService PostService
+@inject RecommenduWeb.Services.UsuarioService UsuarioService
+@model RecommenduWeb.Models.ViewModels.PostagemViewModel
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Postagem post;
+    if (Model.Categoria == "Produto")
+    {
+        post = PostService.BuscarProdutosPorId((int)Model.PostagemId);
+    }
+    else
+    {
+        post = PostService.BuscarServicosPorId((int)Model.PostagemId);
+    }
+
+    var user = await SignInManager.UserManager.GetUserAsync(User);
+    var tempo = PostService.TempoPostagem((DateTime)Model.DtPostagem);
+}
+
+<div class="container">
+    <div class="row d-flex justify-content-center mb-4 g-2">
+        <div class="col-md-8">
+            <div class="card shadow-sm p-4">
+                <div class="row">
+                    <div class="col-3 d-flex justify-content-center">
+                        <img src="/Resources/ProfileImages/@Html.DisplayFor(model => post.Usuario.ImagemPerfil)" class="rounded-circle w-75" />
+                    </div>
+                    <div class="col-9 align-self-center">
+                        <div class="row">
+                            <div class="col-6">
+                                <a class="link-preto text-decoration-none" asp-controller="Usuarios" asp-action="Index" asp-route-userName="@post.Usuario.UserName">
+                                    <h4 class="fs-2">@Html.DisplayFor(model => post.Usuario.UserName)</h4>
+                                </a>
+                            </div>
+                            <div class="col-6 d-flex justify-content-end align-items-center">
+                                <p class="text-end mt-3">
+                                    <small>@Html.DisplayFor(model => tempo)</small>
+                                </p>
+                                <div class="btn-group">
+                                    <button type="button" class="border-0 bg-transparent" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="ps-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 128 512">
+                                                <!--! Font Awesome Free 6.4.2 by @@fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                <style>
+                                                    svg {
+                                                        fill: #000000
+                                                    }</style>
+                                                <path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        @if (user.Id == post.Usuario.Id)
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" asp-action="Edit" asp-route-cat="@Model.Categoria" asp-route-id="@Model.PostagemId">
+                                                    Editar
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalConfirmDel">
+                                                    Deletar
+                                                </a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" asp-action="Reportar" asp-route-postId="@Model.PostagemId" asp-route-cat="@Model.Categoria" asp-route-Count="@ViewData["Count"]">
+                                                    Reportar
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-4">
+                        <p>@Html.DisplayFor(model => model.Descricao)</p>
+                    </div>
+                    <div class="col-12 card-titulo my-3 p-3">
+                        <h5 class="text-truncate text-center text-light fs-3">@Html.DisplayFor(model => model.Titulo)</h5>
+                    </div>
+                    <div class="col-12">
+                        <img src="/Resources/PostImages/@Html.DisplayFor(model => model.ImgPostagem)" class="img-card" />
+                    </div>
+                    <div class="col-12 my-5 fs-5">
+                        @if (Model.Categoria == "Produto")
+                        {
+                            <p><strong>Publico alvo:</strong> @Html.DisplayFor(model => model.PublicoAlvo) </p>
+                            <p><strong>Fabricante:</strong> @Html.DisplayFor(model => model.Fabricante)</p>
+                            <a href="@Html.DisplayFor(model => model.LinkProduto)" class="link-preto fw-bold">Acessar o produto</a>
+                        }
+                        else if (Model.Categoria == "Serviço")
+                        {
+                            @if (!Model.Estado.Contains("Selecione"))
+                            {
+                                <p><strong>Estado:</strong> @Html.DisplayFor(model => model.Estado) </p>
+                            }
+                            else
+                            {
+                                <p><strong>Estado:</strong></p>
+                            }
+                            <p><strong>Cidade:</strong> @Html.DisplayFor(model => model.Cidade)</p>
+                            <p><strong>Endereço:</strong> @Html.DisplayFor(model => model.Endereco)</p>
+                            <p><strong>Contato:</strong> @Html.DisplayFor(model => model.Contato)</p>
+                        }
+                    </div>
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-6">
+                                @if (Convert.ToInt32(ViewData["Count"]) != 0)
+                                {
+                                    <input type="button" class="btn btn-lg btn-outline-dark" onclick="history.go(-@ViewData["Count"])" value="Voltar" />
+                                }
+                                else
+                                {
+                                    <a type="button" class="btn btn-lg btn-outline-dark" asp-action="Index" asp-controller="Home">Voltar</a>
+                                }
+                            </div>
+                            <div class="col-6 px-3">
+                                @{
+                                    RegistroCurtida rc = new RegistroCurtida();
+                                    rc = await PostService.GetRegistroCurtidaAsync(user.Id, (int)Model.PostagemId);
+
+                                    if (user.Id != post.Usuario.Id)
+                                    {
+                                        if (rc == null)
+                                        {
+                                            <div class="d-flex justify-content-end">
+                                                <button class="btn btn-lg btn-dark" onclick="location.href='@Url.Action("Curtir", "Postagens", new { postId = Model.PostagemId, cat = Model.Categoria, acao = 1, userId = user.Id, Count = ViewData["Count"] })'">
+                                                    <span class="text-light fw-light">@Html.DisplayFor(model => model.Curtidas) Curtir</span>
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="d-flex justify-content-end">
+                                                <button class="btn btn-lg btn-dark" onclick="location.href='@Url.Action("Curtir", "Postagens", new { postId = Model.PostagemId, cat = Model.Categoria, acao = 0, userId = user.Id, Count = ViewData["Count"] })'">
+                                                    <span class="text-laranja"><strong>@Html.DisplayFor(model => model.Curtidas)</strong> Curtir</span>
+                                                </button>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="row fs-5">
+                                            <div class="col-12 d-flex justify-content-end">
+                                                <span class="me-1">@Html.DisplayFor(model => model.Curtidas)</span>
+                                                <img src="/Resources/SiteImages/star.svg" class="img-fluid" style="max-width: 25px" />
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (!((Model.ComentarioPostagem.Count == 0) && (user.Id == post.Usuario.Id)))
+        {
+            <div class="col-md-8">
+                <div class="card shadow-sm p-4">
+                    <div class="row">
+                        <div class="col-12 overflow-auto" style="max-height: 500px">
+                            <div class="row">
+                                @foreach (var item in Model.ComentarioPostagem)
+                                {
+                                    var userComent = UsuarioService.BuscarUsuarioPorId(item.UsuarioId);
+                                    var tempoComent = PostService.TempoPostagem(item.DtComentario);
+
+                                    <div class="col-3 d-flex justify-content-end py-3">
+                                        <img src="/Resources/ProfileImages/@userComent.ImagemPerfil" class="rounded-circle" style="max-width: 80px; max-height: 80px" />
+                                    </div>
+                                    <div class="col-9 py-3">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <a class="link-preto text-decoration-none" asp-controller="Usuarios" asp-action="Index" asp-route-userName="@userComent.UserName"><b class="fs-6">@userComent.UserName</b></a>
+                                            </div>
+                                            <div class="col-6 d-flex justify-content-end">
+                                                <p class="text-end">
+                                                    <small>@tempoComent</small>
+                                                </p>
+                                                @if (user.Id == item.UsuarioId || user.Id == post.Usuario.Id)
+                                                {
+                                                    <div class="btn-group">
+                                                        <button type="button" class="border-0 bg-transparent" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <span class="ps-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 128 512">
+                                                                    <!--! Font Awesome Free 6.4.2 by @@fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                                                                    <style>
+                                                                        svg {
+                                                                            fill: #000000
+                                                                        }</style>
+                                                                    <path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z" />
+                                                                </svg>
+                                                            </span>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a class="dropdown-item" asp-action="ExcluirComentario" asp-controller="Comentarios" asp-route-comentId="@item.ComentId" asp-route-Count="@ViewData["Count"]">
+                                                                    Deletar
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="col-12">
+                                                <p>@item.Comentario</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        @if (user.Id != post.Usuario.Id)
+                        {
+                            <div class="col-12 py-3">
+                                <div class="form-group">
+                                    <form asp-action="EnviarComentario" asp-controller="Comentarios" asp-route-postId="@Model.PostagemId" asp-route-cat="@Model.Categoria" asp-route-userId="@user.Id" asp-route-Count="@ViewData["Count"]" method="post">
+                                        <textarea asp-for="Comentario" class="form-control d-flex w-90" style="resize: none" cols="60" rows="5"></textarea>
+                                        <span asp-validation-for="Comentario" class="text-danger"></span>
+                                        <div class="d-flex justify-content-end">
+                                            <input type="submit" name="btnSubmit" value="Enviar" class="btn btn-lg btn-dark mt-4" />
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+<div id="modalConfirmDel" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Deletar postagem</h5>
+                <button type="button" class="btn btn-close float-end" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body flex-column row text-center">
+                <h5>Tem certeza que deseja deletar essa postagem?</h5>
+            </div>
+            <div class="row p-3">
+                <div class="col-12 d-flex justify-content-around">
+                    <div>
+                        <button type="button" class="btn btn-outline-preto py-3 px-5" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                    <div>
+                        <form asp-action="Delete" asp-controller="Postagens" asp-route-PostagemId="@Model.PostagemId" asp-route-Categoria="@Model.Categoria" method="post">
+                            <input type="hidden" asp-for="@Model.PostagemId" />
+                            <input type="hidden" asp-for="@Model.Categoria" />
+                            <input type="submit" value="Deletar Publicação" class="btn btn-laranja py-3 px-5" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
